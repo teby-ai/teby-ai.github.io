@@ -15,7 +15,7 @@
             --darker: #0a0a0a;
             --light: #e0e0e0;
             --accent: #8A2BE2; /* New vibrant purple accent */
-            --glow-intensity: 0.6;
+            --glow-intensity: 0.8; /* Increased glow intensity */
         }
         
         * {
@@ -104,8 +104,9 @@
             width: 100%;
             height: 100vh;
             z-index: -1;
-            opacity: 0.4;
+            opacity: 0.5; /* Slightly increased opacity */
             pointer-events: none;
+            filter: blur(0.5px); /* Subtle blur for better readability */
         }
         
         .hero {
@@ -128,6 +129,8 @@
                         inset 0 0 15px rgba(0, 0, 0, 0.6);
             position: relative;
             overflow: hidden;
+            backdrop-filter: blur(10px); /* Added blur effect */
+            background: linear-gradient(145deg, rgba(18, 18, 18, 0.9), rgba(10, 10, 10, 0.95)); /* Enhanced gradient */
         }
 
         .terminal::before {
@@ -271,6 +274,7 @@
             position: relative;
             overflow: hidden;
             z-index: 1;
+            box-shadow: 0 0 15px rgba(0, 255, 0, 0.2); /* Added initial glow */
         }
 
         .cta-button::before {
@@ -492,14 +496,15 @@
         const drops = [];
         const colors = [];
         const speeds = [];
+        const opacities = []; // New array for individual character opacities
         
         for(let i = 0; i < columns; i++) {
-            drops[i] = Math.floor(Math.random() * -100); // Starting above screen for staggered effect
-            // Randomly assign green or purple with varying opacities
+            drops[i] = Math.floor(Math.random() * -100);
             colors[i] = Math.random() > 0.85 ? 
                         `rgba(138, 43, 226, ${0.7 + Math.random() * 0.3})` : 
                         `rgba(0, ${155 + Math.random() * 100}, 0, ${0.7 + Math.random() * 0.3})`;
-            speeds[i] = 0.5 + Math.random() * 1.5; // Different falling speeds
+            speeds[i] = 0.5 + Math.random() * 1.5;
+            opacities[i] = Math.random() * 0.5 + 0.5; // Random opacity between 0.5 and 1
         }
         
         function draw() {
@@ -508,21 +513,19 @@
             
             for(let i = 0; i < drops.length; i++) {
                 const text = chars[Math.floor(Math.random() * chars.length)];
-                ctx.fillStyle = colors[i];
                 
                 // First character is brighter (head of the rain)
                 if(drops[i] > 0) {
                     ctx.fillStyle = '#ffffff';
                     ctx.shadowColor = colors[i];
-                    ctx.shadowBlur = 10;
+                    ctx.shadowBlur = 15; // Increased glow
                     ctx.fillText(text, i * fontSize, drops[i] * fontSize);
                     ctx.shadowBlur = 0;
                     
-                    // Trail characters
-                    ctx.fillStyle = colors[i];
+                    // Trail characters with improved fade effect
                     for(let j = 1; j < 20; j++) {
                         if(drops[i] - j > 0) {
-                            const alpha = 1 - (j / 20);
+                            const alpha = (1 - (j / 20)) * opacities[i];
                             ctx.fillStyle = colors[i].replace(/[\d\.]+\)$/, `${alpha})`);
                             const trailChar = chars[Math.floor(Math.random() * chars.length)];
                             ctx.fillText(trailChar, i * fontSize, (drops[i] - j) * fontSize);
@@ -533,30 +536,30 @@
                 // Reset to top when reaching bottom with random chance
                 if(drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
                     drops[i] = 0;
-                    // Occasionally change color
                     if(Math.random() > 0.8) {
                         colors[i] = Math.random() > 0.85 ? 
                                   `rgba(138, 43, 226, ${0.7 + Math.random() * 0.3})` : 
                                   `rgba(0, ${155 + Math.random() * 100}, 0, ${0.7 + Math.random() * 0.3})`;
+                        opacities[i] = Math.random() * 0.5 + 0.5; // New random opacity
                     }
                     speeds[i] = 0.5 + Math.random() * 1.5;
                 }
                 
                 drops[i] += speeds[i];
             }
+            
+            requestAnimationFrame(draw); // Use requestAnimationFrame for smoother animation
         }
         
-        setInterval(draw, 33);
+        draw(); // Start the animation
         
         // Responsive handling
         window.addEventListener('resize', () => {
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
             
-            // Recalculate columns and drops
             const newColumns = canvas.width / fontSize;
             
-            // Add new columns if needed
             if(newColumns > drops.length) {
                 for(let i = drops.length; i < newColumns; i++) {
                     drops[i] = Math.floor(Math.random() * -100);
@@ -564,6 +567,7 @@
                               `rgba(138, 43, 226, ${0.7 + Math.random() * 0.3})` : 
                               `rgba(0, ${155 + Math.random() * 100}, 0, ${0.7 + Math.random() * 0.3})`;
                     speeds[i] = 0.5 + Math.random() * 1.5;
+                    opacities[i] = Math.random() * 0.5 + 0.5;
                 }
             }
         });
